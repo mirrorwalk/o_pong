@@ -2,11 +2,19 @@ package main
 
 import ba "core:container/bit_array"
 
-Print :: struct {}
-
 Player :: struct {}
-
-No :: struct {}
+Position :: struct {
+	x: int,
+	y: int,
+}
+Size :: struct {
+	width: int,
+	height: int,
+}
+Speed :: struct {
+	x: int,
+	y: int,
+}
 
 Component_Storage :: struct($T: typeid) {
 	using base: Storage_Base,
@@ -34,12 +42,16 @@ remove_component :: proc(storage: ^Component_Storage($T), id: int) {
 	storage.data[id] = T{}
 }
 
+get_component :: proc (storage: ^Component_Storage($T), id: int) -> ^T {
+    return &storage.data[id];
+}
+
 has_component :: proc(storage: ^Component_Storage($T), id: int) -> bool {
-    is_set, ok := ba.get(&storage.present, id)
-    return is_set && ok
+	is_set, ok := ba.get(&storage.present, id)
+	return is_set && ok
 }
 
 has_not_component :: proc(storage: ^Component_Storage($T), id: int) -> bool {
-    is_set, ok := ba.get(&storage.present, id)
-    return !is_set || !ok
+	is_set, ok := ba.get(&storage.present, id)
+	return !is_set || !ok
 }

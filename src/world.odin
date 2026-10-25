@@ -7,21 +7,25 @@ MAX_ENTITIES :: 1024
 World :: struct {
 	entities:  ba.Bit_Array,
 
-	prints: Component_Storage(Print),
     players: Component_Storage(Player),
-    nos: Component_Storage(No),
+    positions: Component_Storage(Position),
+    sizes: Component_Storage(Size),
+    speeds: Component_Storage(Speed),
 
     storages: [dynamic]^Storage_Base,
 
 }
 
 init_world :: proc(world: ^World) {
-    init_storage(&world.prints)
+    init_storage(&world.positions)
     init_storage(&world.players)
-    init_storage(&world.nos)
+    init_storage(&world.sizes)
+    init_storage(&world.speeds)
 
-    append(&world.storages, &world.prints)
+    append(&world.storages, &world.positions)
     append(&world.storages, &world.players)
+    append(&world.storages, &world.sizes)
+    append(&world.storages, &world.speeds)
 }
 
 new_entity :: proc(world: ^World) -> (id: int, ok: bool) {
