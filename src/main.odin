@@ -1,19 +1,32 @@
 package main
 
+import ba "core:container/bit_array"
 import "core:fmt"
 
 main :: proc() {
 	world := World{}
-    init_world(&world)
+	init_world(&world)
 
-    id, _ := new_entity(&world)
+	player1, _ := new_entity(&world)
+	player2, _ := new_entity(&world)
 
-    add_component(&world.positions, id, Position{x = 10, y = 10})
+	add_component(&world.prints, player1, Print{})
+	add_component(&world.players, player1, Player{})
 
-    fmt.printfln("{}", world.positions.data[id])
+	add_component(&world.prints, player2, Print{})
+	add_component(&world.players, player2, Player{})
+	add_component(&world.nos, player2, No{})
+
+	print_player(&world)
+}
 
 
-    remove_component(&world.positions, id)
+print_player :: proc(world: ^World) {
+	it := ba.make_iterator(&world.players.present)
 
-    fmt.printfln("{}", world.positions.data[id])
+	for id in ba.iterate_by_set(&it) {
+		if has_component(&world.prints, id) && has_not_component(&world.nos, id) {
+			fmt.printfln("{}", id)
+		}
+	}
 }
