@@ -1,12 +1,19 @@
 package main
 
 import "core:fmt"
+
 main :: proc() {
 	world := World{}
     init_world(&world)
 
     id, _ := new_entity(&world)
-    kill_entity(&world, id)
 
-    fmt.printfln("{}", id)
+    add_component(&world.positions, id, Position{x = 10, y = 10})
+
+    fmt.printfln("{}", world.positions.data[id])
+
+
+    remove_component(&world.positions, id)
+
+    fmt.printfln("{}", world.positions.data[id])
 }
