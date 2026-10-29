@@ -8,12 +8,30 @@ Position :: struct {
 	y: int,
 }
 Size :: struct {
-	width: int,
+	width:  int,
 	height: int,
 }
 Speed :: struct {
 	x: int,
 	y: int,
+}
+Velocity :: struct {
+	x: int,
+	y: int,
+}
+Ball :: struct {}
+Render :: struct {}
+Collider :: union {
+	Box_Collider,
+    Sphere_Collider,
+}
+
+Box_Collider :: struct {
+	half: [2]f32,
+}
+
+Sphere_Collider :: struct {
+    radius: f32
 }
 
 Component_Storage :: struct($T: typeid) {
@@ -42,8 +60,8 @@ remove_component :: proc(storage: ^Component_Storage($T), id: int) {
 	storage.data[id] = T{}
 }
 
-get_component :: proc (storage: ^Component_Storage($T), id: int) -> ^T {
-    return &storage.data[id];
+get_component :: proc(storage: ^Component_Storage($T), id: int) -> ^T {
+	return &storage.data[id]
 }
 
 has_component :: proc(storage: ^Component_Storage($T), id: int) -> bool {
