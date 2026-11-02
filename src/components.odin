@@ -2,6 +2,7 @@ package main
 
 import ba "core:container/bit_array"
 
+Enemy :: struct{}
 Player :: struct {}
 Position :: struct {
 	x: int,

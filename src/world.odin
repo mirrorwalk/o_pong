@@ -15,6 +15,7 @@ World :: struct {
     renders: Component_Storage(Render),
     velocitys: Component_Storage(Velocity),
     colliders: Component_Storage(Collider),
+    enemies: Component_Storage(Enemy),
 
     storages: [dynamic]^Storage_Base,
 
@@ -29,6 +30,7 @@ init_world :: proc(world: ^World) {
     init_storage(&world.renders)
     init_storage(&world.velocitys)
     init_storage(&world.colliders)
+    init_storage(&world.enemies)
 
     append(&world.storages, &world.positions)
     append(&world.storages, &world.players)
@@ -38,6 +40,7 @@ init_world :: proc(world: ^World) {
     append(&world.storages, &world.renders)
     append(&world.storages, &world.velocitys)
     append(&world.storages, &world.colliders)
+    append(&world.storages, &world.enemies)
 }
 
 new_entity :: proc(world: ^World) -> (id: int, ok: bool) {

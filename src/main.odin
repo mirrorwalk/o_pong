@@ -18,7 +18,7 @@ main :: proc() {
 	add_component(&world.speeds, player, Speed{y = 10, x = 0})
 	add_component(&world.renders, player, Render{})
 	add_component(&world.colliders, player, Box_Collider{half = {7.5, 7.5}})
-	add_component(&world.velocitys, player, Velocity{y = 0, x = 10})
+	add_component(&world.velocitys, player, Velocity{y = 0, x = 0})
 
 	ball, _ := new_entity(&world)
 	add_component(&world.balls, ball, Ball{})
@@ -29,6 +29,15 @@ main :: proc() {
 	add_component(&world.colliders, ball, Sphere_Collider{radius = 15 / 2})
 	add_component(&world.renders, ball, Render{})
 
+	enemy, _ := new_entity(&world)
+	add_component(&world.enemies, enemy, Enemy{})
+	add_component(&world.positions, enemy, Position{x = 800 - 30, y = 50})
+	add_component(&world.sizes, enemy, Size{height = 100, width = 13})
+	add_component(&world.speeds, enemy, Speed{y = 10, x = 0})
+	add_component(&world.renders, enemy, Render{})
+	add_component(&world.colliders, enemy, Box_Collider{half = {7.5, 7.5}})
+	add_component(&world.velocitys, enemy, Velocity{y = 0, x = 0})
+
 	rl.InitWindow(800, 600, "PONG")
 	rl.SetTargetFPS(60)
 	defer rl.CloseWindow()
@@ -36,6 +45,7 @@ main :: proc() {
 	for !rl.WindowShouldClose() {
 		get_input(&world)
 		ball_move(&world)
+		enemy_move(&world)
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.BLACK)
@@ -101,6 +111,36 @@ get_input :: proc(world: ^World) {
 	}
 }
 
+enemy_move :: proc(world: ^World) {
+	it := ba.make_iterator(&world.enemies.present)
+
+	for id in ba.iterate_by_set(&it) {
+		if has_component(&world.positions, id) &&
+		   has_component(&world.speeds, id) &&
+		   has_component(&world.velocitys, id) {
+			ball_it := ba.make_iterator(&world.balls.present)
+
+			for ball_id in ba.iterate_by_set(&ball_it) {
+				if has_component(&world.positions, ball_id) {
+					ball_position := get_component(&world.positions, ball_id)
+
+					pos := get_component(&world.positions, id)
+                    size := get_component(&world.sizes, id)
+                    speed := get_component(&world.speeds, id)
+
+                    // fmt.printfln("{}, {}", ball_position.y, pos.y)
+
+					if ball_position.y > pos.y + size.height {
+                        pos.y += speed.y
+					} else if ball_position.y < pos.y {
+                        pos.y -= speed.y
+                    }
+				}
+			}
+		}
+	}
+}
+
 ball_move :: proc(world: ^World) {
 	it := ba.make_iterator(&world.balls.present)
 
@@ -136,7 +176,7 @@ ball_move :: proc(world: ^World) {
 				   has_component(&world.velocitys, id) {
 					col_pos := get_component(&world.positions, col_id)
 					col_col := get_component(&world.colliders, col_id)
-                    col_vel := get_component(&world.velocitys, col_id)
+					col_vel := get_component(&world.velocitys, col_id)
 
 					col := get_component(&world.colliders, id).(Sphere_Collider)
 
@@ -161,8 +201,8 @@ ball_move :: proc(world: ^World) {
 
 						if dx * dx + dy * dy <= col.radius * col.radius {
 							new_velocity *= -1
-                            new_vel_y := new_velocity.y + col_vel.y
-                            new_velocity.y = clamp(new_vel_y, -ball_speed.y, ball_speed.y)
+							new_vel_y := new_velocity.y + col_vel.y
+							new_velocity.y = clamp(new_vel_y, -ball_speed.y, ball_speed.y)
 						}
 					case Sphere_Collider:
 					}
@@ -187,7 +227,7 @@ render :: proc(world: ^World) {
 			size := get_component(&world.sizes, id)
 			position := get_component(&world.positions, id)
 
-			if has_component(&world.players, id) {
+			if has_component(&world.players, id) || has_component(&world.enemies, id) {
 				rl.DrawRectangle(
 					auto_cast position.x,
 					auto_cast position.y,
