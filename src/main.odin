@@ -1,6 +1,7 @@
 package main
 
 import ba "core:container/bit_array"
+import "core:math/rand"
 import rl "vendor:raylib"
 
 import "core:fmt"
@@ -31,7 +32,7 @@ main :: proc() {
 
 	enemy, _ := new_entity(&world)
 	add_component(&world.enemies, enemy, Enemy{})
-	add_component(&world.positions, enemy, Position{x = 800 - 30, y = 50})
+	add_component(&world.positions, enemy, Position{x = 800 - 30, y = 200})
 	add_component(&world.sizes, enemy, Size{height = 100, width = 13})
 	add_component(&world.speeds, enemy, Speed{y = 10, x = 0})
 	add_component(&world.renders, enemy, Render{})
@@ -46,6 +47,7 @@ main :: proc() {
 		get_input(&world)
 		ball_move(&world)
 		enemy_move(&world)
+		win_con(&world)
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.BLACK)
@@ -111,6 +113,72 @@ get_input :: proc(world: ^World) {
 	}
 }
 
+win_con :: proc(world: ^World) {
+	it := ba.make_iterator(&world.balls.present)
+
+	for id in ba.iterate_by_set(&it) {
+		if has_component(&world.positions, id) && has_component(&world.sizes, id) {
+			pos := get_component(&world.positions, id)
+			size := get_component(&world.sizes, id)
+			screen_width := rl.GetScreenWidth()
+
+			if pos.x - size.width <= 0 {
+				world.score -= 1
+				reset_state(world)
+			} else if pos.x + size.width >= auto_cast screen_width {
+				world.score += 1
+				reset_state(world)
+			}
+
+		}
+	}
+}
+
+reset_state :: proc(world: ^World) {
+	player_it := ba.make_iterator(&world.players.present)
+	for id in ba.iterate_by_set(&player_it) {
+		if has_component(&world.positions, id) && has_component(&world.velocitys, id) {
+			pos := get_component(&world.positions, id)
+			vel := get_component(&world.velocitys, id)
+
+			pos.y = 50
+			vel.x = 0
+			vel.y = 0
+		}
+	}
+
+	enemy_it := ba.make_iterator(&world.enemies.present)
+	for id in ba.iterate_by_set(&enemy_it) {
+		if has_component(&world.positions, id) && has_component(&world.velocitys, id) {
+			pos := get_component(&world.positions, id)
+			vel := get_component(&world.velocitys, id)
+
+			pos.y = 50
+			vel.x = 0
+			vel.y = 0
+		}
+	}
+
+	ball_it := ba.make_iterator(&world.balls.present)
+	for id in ba.iterate_by_set(&ball_it) {
+		if has_component(&world.positions, id) &&
+		   has_component(&world.velocitys, id) &&
+		   has_component(&world.speeds, id) {
+			pos := get_component(&world.positions, id)
+			vel := get_component(&world.velocitys, id)
+			speed := get_component(&world.speeds, id)
+
+			pos.y = 50
+			pos.x = 400
+			vel.x = rand.int_range(-speed.x, speed.x)
+			vel.y = rand.int_range(-speed.y, speed.y)
+
+            if vel.x == 0 do vel.x += 1
+            if vel.y == 0 do vel.y += 1
+		}
+	}
+}
+
 enemy_move :: proc(world: ^World) {
 	it := ba.make_iterator(&world.enemies.present)
 
@@ -125,16 +193,16 @@ enemy_move :: proc(world: ^World) {
 					ball_position := get_component(&world.positions, ball_id)
 
 					pos := get_component(&world.positions, id)
-                    size := get_component(&world.sizes, id)
-                    speed := get_component(&world.speeds, id)
+					size := get_component(&world.sizes, id)
+					speed := get_component(&world.speeds, id)
 
-                    // fmt.printfln("{}, {}", ball_position.y, pos.y)
+					// fmt.printfln("{}, {}", ball_position.y, pos.y)
 
 					if ball_position.y > pos.y + size.height {
-                        pos.y += speed.y
+						pos.y += speed.y
 					} else if ball_position.y < pos.y {
-                        pos.y -= speed.y
-                    }
+						pos.y -= speed.y
+					}
 				}
 			}
 		}
@@ -248,4 +316,10 @@ render :: proc(world: ^World) {
 			}
 		}
 	}
+
+    screen_width := rl.GetScreenWidth()
+    screen_height := rl.GetScreenHeight()
+
+    s := fmt.ctprintf("%d", world.score)
+    rl.DrawText(s, screen_width / 2 - 50, screen_height / 2 - 50, 100, rl.WHITE)
 }

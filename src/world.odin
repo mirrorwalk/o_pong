@@ -7,6 +7,8 @@ MAX_ENTITIES :: 1024
 World :: struct {
 	entities:  ba.Bit_Array,
 
+    score: int,
+
     players: Component_Storage(Player),
     positions: Component_Storage(Position),
     sizes: Component_Storage(Size),
@@ -41,6 +43,8 @@ init_world :: proc(world: ^World) {
     append(&world.storages, &world.velocitys)
     append(&world.storages, &world.colliders)
     append(&world.storages, &world.enemies)
+
+    world.score = 0
 }
 
 new_entity :: proc(world: ^World) -> (id: int, ok: bool) {
